@@ -8,3 +8,4 @@ XRAY_FAMILY := spartan7
 
 # We abuse the ArtyS7 openFPGALoader board profile here as it's similar.
 OPENFPGALOADER_BOARD := arty_s7_50
+OPENFPGALOADER_FLAGS :=
