@@ -9,10 +9,10 @@ SYNTH_OPTS ?=
 GOWIN_DEVICE ?= GW1NR-LV9QN88PC6/I5
 GOWIN_FAMILY ?= GW1N-9C
 
-PNR_OUT     ?= $(TOP)_pnr.json
-PNR_CMD     ?= nextpnr-himbaechel --json $(TOP).json --write $(PNR_OUT) --device $(GOWIN_DEVICE) --vopt family=$(GOWIN_FAMILY) --vopt cst=$(PCF_FILE)
+PNR_OUT     ?= $(BUILD_DIR)/$(TOP)_pnr.json
+PNR_CMD     ?= nextpnr-himbaechel --json $(BUILD_DIR)/$(TOP).json --write $(PNR_OUT) --device $(GOWIN_DEVICE) --vopt family=$(GOWIN_FAMILY) --vopt cst=$(PCF_FILE)
 
-BITSTREAM ?= $(TOP).fs
+BITSTREAM ?= $(BUILD_DIR)/$(TOP).fs
 PACK_CMD  ?= gowin_pack -d $(GOWIN_FAMILY) -o $(BITSTREAM) $(PNR_OUT)
 LOAD_CMD  ?= openFPGALoader --board=$(OPENFPGALOADER_BOARD) $(OPENFPGALOADER_FLAGS) $(BITSTREAM)
 FLASH_CMD ?= openFPGALoader --board=$(OPENFPGALOADER_BOARD) $(OPENFPGALOADER_FLAGS) --write-flash $(BITSTREAM)

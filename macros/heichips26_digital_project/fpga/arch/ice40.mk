@@ -10,8 +10,8 @@ SYNTH_OPTS ?= -dsp -spram
 ICE40_DEVICE ?= --up5k --package sg48
 
 PNR_ARGS    ?= $(ICE40_DEVICE) --pcf-allow-unconstrained
-PNR_OUT     ?= $(TOP).asc
-PNR_CMD     ?= nextpnr-ice40 $(PNR_ARGS) --json $(TOP).json --pcf $(PCF_FILE) --asc $(PNR_OUT)
+PNR_OUT     ?= $(BUILD_DIR)/$(TOP).asc
+PNR_CMD     ?= nextpnr-ice40 $(PNR_ARGS) --json $(BUILD_DIR)/$(TOP).json --pcf $(PCF_FILE) --asc $(PNR_OUT)
 
-BITSTREAM ?= $(TOP).bin
+BITSTREAM ?= $(BUILD_DIR)/$(TOP).bin
 PACK_CMD  ?= icepack $(PNR_OUT) $(BITSTREAM)

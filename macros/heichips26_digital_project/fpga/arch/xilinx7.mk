@@ -8,7 +8,7 @@
 # provides NEXTPNR_XILINX_PYTHON_DIR and PRJXRAY_DB_DIR), then `make pr`.
 
 # synth_xilinx's flags don't fit fpga.mk's "$(TARGET) $(SYNTH_OPTS) -top $(TOP)" shape.
-SYNTH_CMD ?= yosys -DFPGA -p "synth_xilinx -flatten -abc9 -arch xc7 -top $(TOP); write_json $(TOP).json;" $(MODULES_SYNTH)
+SYNTH_CMD ?= yosys -DFPGA -p "synth_xilinx -flatten -abc9 -arch xc7 -top $(TOP); write_json $(BUILD_DIR)/$(TOP).json;" $(MODULES_SYNTH)
 
 # Generated once per package, then kept — not removed by `clean`.
 $(CHIPDB):
@@ -18,13 +18,11 @@ $(CHIPDB):
 
 # PnR emits FASM, not a bitstream config; two more steps turn it into one.
 PNR_DEPS ?= $(CHIPDB)
-PNR_OUT  ?= $(TOP).frames
-PNR_CMD  ?= nextpnr-xilinx --chipdb $(CHIPDB) --xdc $(PCF_FILE) --json $(TOP).json --fasm $(TOP).fasm; \
-	fasm2frames --part $(PART) --db-root $${PRJXRAY_DB_DIR}/$(XRAY_FAMILY) $(TOP).fasm > $(PNR_OUT)
+PNR_OUT  ?= $(BUILD_DIR)/$(TOP).frames
+PNR_CMD  ?= nextpnr-xilinx --chipdb $(CHIPDB) --xdc $(PCF_FILE) --json $(BUILD_DIR)/$(TOP).json --fasm $(BUILD_DIR)/$(TOP).fasm; \
+	fasm2frames --part $(PART) --db-root $${PRJXRAY_DB_DIR}/$(XRAY_FAMILY) $(BUILD_DIR)/$(TOP).fasm > $(PNR_OUT)
 
-BITSTREAM ?= $(TOP).bit
+BITSTREAM ?= $(BUILD_DIR)/$(TOP).bit
 PACK_CMD  ?= xc7frames2bit --part_file $${PRJXRAY_DB_DIR}/$(XRAY_FAMILY)/$(PART)/part.yaml --part_name $(PART) --frm_file $(PNR_OUT) --output_file $(BITSTREAM)
 LOAD_CMD  ?= openFPGALoader --board=$(OPENFPGALOADER_BOARD) $(OPENFPGALOADER_FLAGS) $(BITSTREAM)
 FLASH_CMD ?= openFPGALoader --board=$(OPENFPGALOADER_BOARD) $(OPENFPGALOADER_FLAGS) --write-flash $(BITSTREAM)
-
-EXTRA_CLEAN ?= $(TOP).fasm
