@@ -9,6 +9,8 @@
 
 FPGA_MK_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
+BUILD_DIR ?= build
+
 include $(FPGA_MK_DIR)arch/$(ARCH).mk
 
 # Variables to be set by the including Makefile:
@@ -21,16 +23,12 @@ include $(FPGA_MK_DIR)arch/$(ARCH).mk
 # Full synthesis command. Only override this wholesale (instead of TARGET/
 # SYNTH_OPTS) for a toolchain whose synth_* pass doesn't fit the
 # "$(TARGET) $(SYNTH_OPTS) -top $(TOP)" shape (e.g. Xilinx's synth_xilinx).
-SYNTH_CMD ?= yosys -DFPGA -p '$(TARGET) $(SYNTH_OPTS) -top $(TOP); write_json $(TOP).json;' $(MODULES_SYNTH)
+SYNTH_CMD ?= yosys -DFPGA -p '$(TARGET) $(SYNTH_OPTS) -top $(TOP); write_json $(BUILD_DIR)/$(TOP).json;' $(MODULES_SYNTH)
 
 # Extra prerequisites for the place-and-route step beyond $(TOP).json and
 # $(PCF_FILE) (e.g. a one-time-generated chip database for a toolchain
 # like nextpnr-xilinx that needs one).
 PNR_DEPS  ?=
-
-# Extra generated files a board's non-default toolchain leaves behind
-# (e.g. Xilinx .fasm/.frames), removed by `clean` alongside the common set.
-EXTRA_CLEAN ?=
 
 # Source list for the full-hierarchy lint-verilog check. Defaults to
 # MODULES_SYNTH, but a project can override this to exclude files Verilator
@@ -52,10 +50,7 @@ help: ## Show this help message
 
 # Clean Target
 clean: ## Remove generated files
-	rm -f test_pre *.vcd $(TOP).json* $(TOP).v $(PNR_OUT) $(BITSTREAM)
-	rm -f $(TOP)_generic.json*
-	rm -f $(TOP)_yosys.svg $(TOP)_yosys.dot $(TOP)_generic_yosys.svg $(TOP)_generic_yosys.dot
-	rm -f $(EXTRA_CLEAN)
+	rm -rf $(BUILD_DIR)
 .PHONY: clean
 # ================================================================================================
 
@@ -68,17 +63,17 @@ lint-verilog: ## Lint the full design hierarchy with Verilator
 
 
 # Synthesis Targets
-synthesis: $(TOP).json ## Run technology-mapped synthesis
+synthesis: $(BUILD_DIR)/$(TOP).json ## Run technology-mapped synthesis
 .PHONY: synthesis
 
-$(TOP).json: $(MODULES_SYNTH)
+$(BUILD_DIR)/$(TOP).json: $(MODULES_SYNTH) | $(BUILD_DIR)
 	$(SYNTH_CMD)
 
-synthesis_generic: $(TOP)_generic.json ## Run generic synthesis and generate Yosys graph
+synthesis_generic: $(BUILD_DIR)/$(TOP)_generic.json ## Run generic synthesis and generate Yosys graph
 .PHONY: synthesis_generic
 
-$(TOP)_generic.json: $(MODULES_SYNTH)
-	yosys -p 'hierarchy -top $(TOP); proc; write_json $(TOP)_generic.json; show -format svg -prefix $(TOP)_generic_yosys $(TOP);' $(MODULES_SYNTH)
+$(BUILD_DIR)/$(TOP)_generic.json: $(MODULES_SYNTH) | $(BUILD_DIR)
+	yosys -p 'hierarchy -top $(TOP); proc; write_json $(BUILD_DIR)/$(TOP)_generic.json; show -format svg -prefix $(BUILD_DIR)/$(TOP)_generic_yosys $(TOP);' $(MODULES_SYNTH)
 # ================================================================================================
 
 
@@ -86,13 +81,13 @@ $(TOP)_generic.json: $(MODULES_SYNTH)
 pr: $(PNR_OUT) ## Run place-and-route
 .PHONY: pr
 
-$(PNR_OUT): $(TOP).json $(PCF_FILE) $(PNR_DEPS)
+$(PNR_OUT): $(BUILD_DIR)/$(TOP).json $(PCF_FILE) $(PNR_DEPS) | $(BUILD_DIR)
 	$(PNR_CMD)
 
 gen_bitstream: $(BITSTREAM) ## Generate FPGA bitstream
 .PHONY: gen_bitstream
 
-$(BITSTREAM): $(PNR_OUT)
+$(BITSTREAM): $(PNR_OUT) | $(BUILD_DIR)
 	$(PACK_CMD)
 
 load_bitstream: $(BITSTREAM) ## Load FPGA bitstream into SRAM (lost on power cycle)
@@ -106,12 +101,15 @@ flash_bitstream: $(BITSTREAM) ## Write FPGA bitstream to flash (persistent)
 
 
 # Conversion Target
-convert: $(TOP).v ## Convert SystemVerilog top to Verilog
+convert: $(BUILD_DIR)/$(TOP).v ## Convert SystemVerilog top to Verilog
 .PHONY: convert
 
-$(TOP).v: $(MODULES_SYNTH)
-	yosys -DFPGA -p 'hierarchy -top $(TOP); proc; write_verilog $(TOP).v;' $(MODULES_SYNTH)
+$(BUILD_DIR)/$(TOP).v: $(MODULES_SYNTH) | $(BUILD_DIR)
+	yosys -DFPGA -p 'hierarchy -top $(TOP); proc; write_verilog $(BUILD_DIR)/$(TOP).v;' $(MODULES_SYNTH)
 # ================================================================================================
+
+$(BUILD_DIR):
+	mkdir -p $@
 
 
 # All Target

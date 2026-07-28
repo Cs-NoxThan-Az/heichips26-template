@@ -100,7 +100,6 @@ include ../../../../fpga/fpga.mk
 | `PNR_CMD`, `PNR_OUT` | mandatory | Place-and-route command and its output file |
 | `PNR_ARGS`, `PNR_DEPS` | optional | PnR flags, and extra prerequisites (e.g. a generated chipdb) |
 | `PACK_CMD`, `BITSTREAM` | mandatory | Bitstream packing command and output file |
-| `EXTRA_CLEAN` | optional | Extra generated files for `clean` to remove |
 
 Both fragments assign with `?=` throughout, so a board `Makefile` can still
 override anything.

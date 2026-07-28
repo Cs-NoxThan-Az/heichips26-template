@@ -9,10 +9,10 @@ SYNTH_OPTS ?=
 ECP5_DEVICE ?= --85k --package CABGA381
 
 PNR_ARGS    ?= $(ECP5_DEVICE) --lpf-allow-unconstrained
-PNR_OUT     ?= $(TOP).config
-PNR_CMD     ?= nextpnr-ecp5 $(PNR_ARGS) --json $(TOP).json --lpf $(PCF_FILE) --textcfg $(PNR_OUT)
+PNR_OUT     ?= $(BUILD_DIR)/$(TOP).config
+PNR_CMD     ?= nextpnr-ecp5 $(PNR_ARGS) --json $(BUILD_DIR)/$(TOP).json --lpf $(PCF_FILE) --textcfg $(PNR_OUT)
 
-BITSTREAM ?= $(TOP).bit
+BITSTREAM ?= $(BUILD_DIR)/$(TOP).bit
 PACK_CMD  ?= ecppack $(PNR_OUT) $(BITSTREAM) --compress
 LOAD_CMD  ?= openFPGALoader --board=$(OPENFPGALOADER_BOARD) $(OPENFPGALOADER_FLAGS) $(BITSTREAM)
 FLASH_CMD ?= openFPGALoader --board=$(OPENFPGALOADER_BOARD) $(OPENFPGALOADER_FLAGS) --write-flash $(BITSTREAM)
