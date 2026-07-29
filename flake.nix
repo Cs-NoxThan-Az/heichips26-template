@@ -70,6 +70,7 @@
               
               # Analog
               xschem
+			  xterm
               ngspice # recompiles for some reason
               klayout
               magic
