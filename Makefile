@@ -9,6 +9,17 @@ PDK_COMMIT_IHP_OPEN_PDK ?= a70a2b692075535d7133994c514fd0e09f17a920
 PDK_REPO_IHP_CMOS5L ?= https://github.com/iic-jku/ihp-sg13cmos5l.git
 PDK_COMMIT_IHP_CMOS5L ?= c18379d6d1b54d70bc40231a456b4c6662631d72
 
+KLAYOUT_PLUGINS = KLayoutPluginUtils \
+                  AlignToolPlugin \
+                  MoveQuicklyToolPlugin \
+                  LayerShortcutsPlugin \
+                  AutoBackupPlugin \
+                  PinToolPlugin \
+                  LibraryManagerPlugin \
+                  VectorFileExportPlugin \
+                  NetlistImportPlugin \
+                  xsection
+
 help: ## Show this help message
 	@echo 'Usage: make [target]'
 	@echo ''
@@ -18,16 +29,26 @@ help: ## Show this help message
 
 $(PDK_ROOT)/$(PDK):
 	mkdir -p $(PDK_ROOT)
+	# Clone repositories
+	@echo "Cloning repositories…"
 	git clone $(PDK_REPO_IHP_OPEN_PDK) --recurse-submodules --depth=1 --revision $(PDK_COMMIT_IHP_OPEN_PDK) $(PDK_ROOT)
 	git clone $(PDK_REPO_IHP_CMOS5L) --recurse-submodules --depth=1 --revision $(PDK_COMMIT_IHP_CMOS5L) $(PDK_ROOT)/$(PDK)
 	# Create missing symlinks
+	@echo "Creating missing symlinks…"
 	ln -s $(PDK_ROOT)/ihp-sg13g2/libs.tech/klayout/python/sg13g2_pycell_lib/ihp/device_base_code.py $(PDK_ROOT)/$(PDK)/libs.tech/klayout/python/sg13cmos5l_pycell_lib/ihp/device_base_code.py
 	ln -s $(PDK_ROOT)/ihp-sg13g2/libs.tech/klayout/python/sg13g2_pycell_lib/ihp/guard_ring_code.py $(PDK_ROOT)/$(PDK)/libs.tech/klayout/python/sg13cmos5l_pycell_lib/ihp/guard_ring_code.py
 	ln -s $(PDK_ROOT)/ihp-sg13g2/libs.tech/xschem/sg13g2_pr/ntap1_ring.sym $(PDK_ROOT)/$(PDK)/libs.tech/xschem/sg13g2_pr/ntap1_ring.sym
 	ln -s $(PDK_ROOT)/ihp-sg13g2/libs.tech/xschem/sg13g2_pr/ptap1_ring.sym $(PDK_ROOT)/$(PDK)/libs.tech/xschem/sg13g2_pr/ptap1_ring.sym
 	# Compile Verilog-A using OpenVAF-reloaded
+	@echo "Compiling Verilog-A models using OpenVAF-reloaded…"
 	cd $(PDK_ROOT)/ihp-sg13g2/libs.tech/verilog-a/; ./openvaf-compile-va.sh
-	@echo "The PDK has been set up!"
+	# Install KLayout Plugins
+	@echo "Installing KLayout Plugins…"
+	@for plugin in ${KLAYOUT_PLUGINS} ; do \
+		echo "- $$plugin…" ; \
+		KLAYOUT_PATH=$(PDK_ROOT)/$(PDK)/libs.tech/klayout/ klayout -t -ne -rr -b -y $$plugin ; \
+	done
+	@echo "Congratulations, the PDK has been set up!"
 
 clone-pdk: $(PDK_ROOT)/$(PDK) ## Clone the IHP-Open-PDK repository
 .PHONY: clone-pdk
