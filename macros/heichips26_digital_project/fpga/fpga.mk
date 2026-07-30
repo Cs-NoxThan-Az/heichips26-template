@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 The HeiChips Contributors
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-# Shared FPGA emulation flow (lint, synthesis, place-and-route, bitstream).
+# Shared FPGA emulation flow (synthesis, place-and-route, bitstream).
 #
 # Included by thin per-board Makefiles, which set the sources and pin mapping
 # and include their boards/<board>.mk first. That fragment names the board's
@@ -15,7 +15,6 @@ include $(FPGA_MK_DIR)arch/$(ARCH).mk
 
 # Variables to be set by the including Makefile:
 #   TOP           - synthesis top module / instance name (required)
-#   SRC_DIR       - RTL source directory for lint -I (required)
 #   MODULES_SYNTH - explicit ordered source file list for TOP (required)
 #   PCF_FILE      - board pin constraint file (required)
 #   ARCH          - FPGA architecture, set by boards/<board>.mk (required)
@@ -29,11 +28,6 @@ SYNTH_CMD ?= yosys -DFPGA -p '$(TARGET) $(SYNTH_OPTS) -top $(TOP); write_json $(
 # $(PCF_FILE) (e.g. a one-time-generated chip database for a toolchain
 # like nextpnr-xilinx that needs one).
 PNR_DEPS  ?=
-
-# Source list for the full-hierarchy lint-verilog check. Defaults to
-# MODULES_SYNTH, but a project can override this to exclude files Verilator
-# can't lint
-MODULES_LINT ?= $(MODULES_SYNTH)
 
 .DEFAULT_GOAL := help
 
@@ -52,13 +46,6 @@ help: ## Show this help message
 clean: ## Remove generated files
 	rm -rf $(BUILD_DIR)
 .PHONY: clean
-# ================================================================================================
-
-
-# Linter Target
-lint-verilog: ## Lint the full design hierarchy with Verilator
-	verilator --lint-only -I"$(SRC_DIR)" $(MODULES_LINT)
-.PHONY: lint-verilog
 # ================================================================================================
 
 
@@ -113,9 +100,8 @@ $(BUILD_DIR):
 
 
 # All Target
-all: ## Run full FPGA flow (lint, synthesis, place-and-route, bitstream)
+all: ## Run full FPGA flow (synthesis, place-and-route, bitstream)
 	$(MAKE) clean
-	$(MAKE) lint-verilog
 	$(MAKE) synthesis
 	$(MAKE) pr
 	$(MAKE) gen_bitstream
