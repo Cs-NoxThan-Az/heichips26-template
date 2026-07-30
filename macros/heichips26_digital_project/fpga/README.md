@@ -20,7 +20,7 @@ in a `<board>_top.sv` that maps board pins to the TinyTapeout-style
 | Boolean     | `fpga/design/boolean/` | Yosys → nextpnr-xilinx → prjxray (`nix-openxc7`) | Build verified, flash untested |
 | pico-ice    | `fpga/design/pico-ice/` | Yosys → nextpnr-ice40 → icepack         | Build verified, flash untested |
 
-All boards need `verilator` and `yosys`; the iCE40/ECP5/Gowin boards additionally need
+All boards need `yosys`; the iCE40/ECP5/Gowin boards additionally need
 `nextpnr-ice40`/`nextpnr-ecp5`/`nextpnr-himbaechel`, `icepack`/`ecppack`/
 `gowin_pack`, and `openFPGALoader` — all provided by this repo's main Nix flake
 (`nix develop`). Basys 3 and Boolean instead need `nextpnr-xilinx` + `prjxray`,
@@ -35,7 +35,7 @@ Once inside, they build like any other board (`make -C design/basys3 all`, etc.)
 
 ## Shared flow: `fpga.mk`
 
-`fpga.mk` implements the whole flow (lint, synthesis, place-and-route,
+`fpga.mk` implements the whole flow (synthesis, place-and-route,
 bitstream, flash) as targets parametrized by variables, split across four
 layers:
 
@@ -77,7 +77,6 @@ include ../../../../fpga/fpga.mk
 | `TOP` | mandatory | Synthesis top module / instance name |
 | `MODULES_SYNTH` | mandatory | Ordered source file list for `TOP` — usually `$(DUT_SRCS)` plus the board's `<board>_top.sv` wrapper |
 | `PCF_FILE` | mandatory | Board pin constraint file |
-| `MODULES_LINT` | optional | Sources for `lint-verilog` (default: `MODULES_SYNTH`). Narrow it to exclude files Verilator can't lint, e.g. a wrapper instantiating a vendor PLL |
 
 ### Set by `boards/<board>.mk`
 
@@ -178,17 +177,6 @@ make clean
 ```
 
 
-## Lint
-
-Run Verilator lint over the full design hierarchy:
-
-```sh
-make lint-verilog
-```
-
-To lint a subset, narrow `MODULES_LINT` in the board `Makefile`.
-
-
 ## Synthesis
 
 Run technology-mapped synthesis for the board's FPGA architecture (the
@@ -258,10 +246,9 @@ make all
 The current `all` recipe executes these steps in order:
 
 1. `make clean`
-2. `make lint-verilog`
-3. `make synthesis`
-4. `make pr`
-5. `make gen_bitstream`
+2. `make synthesis`
+3. `make pr`
+4. `make gen_bitstream`
 
 This ensures stale artifacts from previous runs are removed before a fresh
 build.
