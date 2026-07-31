@@ -27,7 +27,10 @@ If you haven't installed Nix yet, please follow LibreLane's documentation: [Nix-
 
 Now, simply execute `nix-shell` from the root directory of this repository to enable all of the required tools. This must be done every time you open a new shell.
 
-The first time you enable the Nix shell, please run `make clone-pdk` to install the IHP Open PDK for ihp-sg13cmos5l in this repository.
+The first time you enable the Nix shell, please run:
+
+- `make clone-pdk`: to install the IHP Open PDK for ihp-sg13cmos5l in this repository
+- `make klayout-setup`: to install the IHP Open PDK for ihp-sg13cmos5l in this repository
 
 ## Template Structure
 

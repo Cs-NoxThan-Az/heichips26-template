@@ -42,16 +42,21 @@ $(PDK_ROOT)/$(PDK):
 	# Compile Verilog-A using OpenVAF-reloaded
 	@echo "Compiling Verilog-A models using OpenVAF-reloaded…"
 	cd $(PDK_ROOT)/ihp-sg13g2/libs.tech/verilog-a/; ./openvaf-compile-va.sh
+	@echo "Congratulations, the PDK has been set up!"
+
+clone-pdk: $(PDK_ROOT)/$(PDK) ## Clone the IHP-Open-PDK repository
+.PHONY: clone-pdk
+
+klayout-setup:
 	# Install KLayout Plugins
 	@echo "Installing KLayout Plugins…"
 	@for plugin in ${KLAYOUT_PLUGINS} ; do \
 		echo "- $$plugin…" ; \
 		KLAYOUT_PATH=$(PDK_ROOT)/$(PDK)/libs.tech/klayout/ klayout -t -ne -rr -b -y $$plugin ; \
+		sleep 1; \
 	done
-	@echo "Congratulations, the PDK has been set up!"
-
-clone-pdk: $(PDK_ROOT)/$(PDK) ## Clone the IHP-Open-PDK repository
-.PHONY: clone-pdk
+	@echo "All plugins have been installed!"
+.PHONY: klayout-setup
 
 precheck: $(PDK_ROOT)/$(PDK) ## Run the precheck on the design specified in submission.yaml
 	PDK_ROOT=$(PDK_ROOT) PDK=$(PDK) python3 .github/precheck/heichips_precheck.py --config submission.yaml
