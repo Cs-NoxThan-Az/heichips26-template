@@ -29,8 +29,8 @@ Now, simply execute `nix-shell` from the root directory of this repository to en
 
 The first time you enable the Nix shell, please run:
 
-- `make clone-pdk`: to install the IHP Open PDK for ihp-sg13cmos5l in this repository
-- `make klayout-setup`: to install the IHP Open PDK for ihp-sg13cmos5l in this repository
+- `make clone-pdk`: to install the IHP Open PDK for ihp-sg13cmos5l in this repository.
+- `make klayout-setup`: to install the KLayout plugins in your user directory.
 
 ## Template Structure
 
