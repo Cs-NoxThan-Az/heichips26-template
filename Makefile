@@ -29,10 +29,19 @@ help: ## Show this help message
 
 $(PDK_ROOT)/$(PDK):
 	mkdir -p $(PDK_ROOT)
-	# Clone repositories
-	@echo "Cloning repositories…"
-	git clone $(PDK_REPO_IHP_OPEN_PDK) --recurse-submodules --depth=1 --revision $(PDK_COMMIT_IHP_OPEN_PDK) $(PDK_ROOT)
-	git clone $(PDK_REPO_IHP_CMOS5L) --recurse-submodules --depth=1 --revision $(PDK_COMMIT_IHP_CMOS5L) $(PDK_ROOT)/$(PDK)
+	# Clone and checkout IHP-Open-PDK
+	@echo "Cloning IHP-Open-PDK…"
+	cd $(PDK_ROOT) && git init && git remote add origin $(PDK_REPO_IHP_OPEN_PDK)
+	cd $(PDK_ROOT) && git fetch --depth=1 origin $(PDK_COMMIT_IHP_OPEN_PDK)
+	cd $(PDK_ROOT) && git checkout FETCH_HEAD
+	cd $(PDK_ROOT) && git submodule update --init --recursive --depth=1
+	# Clone and checkout ihp-sg13cmos5l
+	@echo "Cloning ihp-sg13cmos5l…"
+	mkdir -p $(PDK_ROOT)/$(PDK)
+	cd $(PDK_ROOT)/$(PDK) && git init && git remote add origin $(PDK_REPO_IHP_CMOS5L)
+	cd $(PDK_ROOT)/$(PDK) && git fetch --depth=1 origin $(PDK_COMMIT_IHP_CMOS5L)
+	cd $(PDK_ROOT)/$(PDK) && git checkout FETCH_HEAD
+	cd $(PDK_ROOT)/$(PDK) && git submodule update --init --recursive --depth=1
 	# Create missing symlinks
 	@echo "Creating missing symlinks…"
 	ln -s $(PDK_ROOT)/ihp-sg13g2/libs.tech/klayout/python/sg13g2_pycell_lib/ihp/device_base_code.py $(PDK_ROOT)/$(PDK)/libs.tech/klayout/python/sg13cmos5l_pycell_lib/ihp/device_base_code.py
@@ -69,3 +78,4 @@ precheck-demo: $(PDK_ROOT)/$(PDK) ## Run the demo precheck (don't use for submis
 klayout: $(PDK_ROOT)/$(PDK) ## Open KLayout (edit mode)
 	KLAYOUT_PATH=$(PDK_ROOT)/$(PDK)/libs.tech/klayout/ klayout -e -n sg13cmos5l
 .PHONY: klayout
+

@@ -1,7 +1,7 @@
 {
   nixConfig = {
     extra-substituters = [
-      "https://nix-cache.fossi-foundation.org"
+      "https://fossi-foundation.org"
     ];
     extra-trusted-public-keys = [
       "nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs="
@@ -70,12 +70,13 @@
               
               # Analog
               xschem
-			  xterm
+              xterm
               ngspice # recompiles for some reason
               klayout
               magic
               netgen
               openvaf-r
+              stdenv.cc # Provides the C compiler and linker (cc/ld) for OpenVAF
             ];
 
             extra-python-packages =
@@ -85,3 +86,4 @@
       );
     };
 }
+
